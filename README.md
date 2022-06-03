@@ -8,7 +8,7 @@ Load balancer for Kubernetes control plane
 ansible-galaxy role install git+https://github.com/sergelogvinov/ansible-role-kubernetes-lb.git,main
 ```
 
-## Use
+## Usage
 
 ```yaml
 haproxy_vhost: |
