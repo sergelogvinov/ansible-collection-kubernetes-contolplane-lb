@@ -1,0 +1,19 @@
+---
+
+haproxy_socket: /run/haproxy/admin.sock
+haproxy_chroot: /var/lib/haproxy
+haproxy_user: haproxy
+haproxy_group: haproxy
+
+haproxy_stats: |
+  frontend stats
+    mode http
+    bind *:8404
+    http-request use-service prometheus-exporter if { path /metrics }
+    stats enable
+    stats uri /
+    stats refresh 10s
+    monitor-uri /healthz
+    option dontlognull
+
+haproxy_vhost: ~

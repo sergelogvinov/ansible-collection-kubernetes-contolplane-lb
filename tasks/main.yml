@@ -1,0 +1,29 @@
+---
+
+- name: Ensure HAProxy is installed.
+  become: yes
+  package:
+    name: haproxy
+    state: present
+
+- name: Write default
+  become: yes
+  template:
+    src: "default.j2"
+    dest: "/etc/default/haproxy"
+
+- name: Copy HAproxy config.
+  become: yes
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    mode: 0644
+    validate: haproxy -f %s -c -q
+  notify: reload haproxy
+
+- name: Ensure HAProxy is started and enabled on boot.
+  become: yes
+  service:
+    name: haproxy
+    state: started
+    enabled: yes
