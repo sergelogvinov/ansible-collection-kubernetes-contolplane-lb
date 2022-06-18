@@ -5,15 +5,19 @@ haproxy_chroot: /var/lib/haproxy
 haproxy_user: haproxy
 haproxy_group: haproxy
 
-haproxy_stats: |
-  frontend stats
-    mode http
-    bind *:8404
-    http-request use-service prometheus-exporter if { path /metrics }
-    stats enable
-    stats uri /
-    stats refresh 10s
-    monitor-uri /healthz
-    option dontlognull
+# echo "show servers state contolplane" | socat stdio /var/run/haproxy.sock
 
-haproxy_vhost: ~
+haproxy_stats_listen: 127.0.0.1:8404
+haproxy_stats: |
+  http-request use-service prometheus-exporter if { path /metrics }
+  stats enable
+  stats uri /
+  stats refresh 10s
+  monitor-uri /healthz
+  option dontlognull
+
+haproxy_vhost_listen: "127.0.0.1:6443"
+haproxy_vhost_backend: ~
+  # default-server verify none check-ssl inter 15s fall 2 rise 2 on-marked-down shutdown-sessions resolvers resolvconf init-addr last,none resolve-prefer ipv4
+  # server-template api 6 controlplane.cluster.local:6443 check
+  # server ext1 172.16.132.11:6443 backup check

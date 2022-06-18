@@ -4,7 +4,6 @@ global
   daemon
   master-worker
 
-  # chroot {{ haproxy_chroot }}
   pidfile /var/run/haproxy.pid
 
   ca-base   /etc/ssl/certs
@@ -17,8 +16,8 @@ global
   ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384
   ssl-default-bind-options prefer-client-ciphers no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
 
-  stats socket 127.0.0.1:9000 mode 660 level admin
-  # stats socket /var/run/haproxy.sock mode 600 level admin
+  # stats socket 127.0.0.1:9000 mode 660 level admin
+  stats socket /var/run/haproxy.sock mode 600 level admin
 
   server-state-file haproxy_state
   server-state-base /run
@@ -45,6 +44,25 @@ defaults
   timeout http-keep-alive 1m
   default-server init-addr last,none
 
-{{ haproxy_stats }}
+frontend stats
+  mode http
+  bind {{ haproxy_stats_listen }}
+{% for ln in haproxy_stats.split("\n") %}
+  {{ ln }}
+{% endfor %}
 
-{{ haproxy_vhost }}
+frontend contolplane
+  bind {{ haproxy_vhost_listen }}
+  use_backend contolplane
+
+backend contolplane
+  mode tcp
+  fullconn 512
+  balance roundrobin
+
+  option  httpchk GET /readyz HTTP/1.0
+  http-check expect status 200,401
+
+{% for ln in haproxy_vhost_backend.split("\n") %}
+  {{ ln }}
+{% endfor %}
