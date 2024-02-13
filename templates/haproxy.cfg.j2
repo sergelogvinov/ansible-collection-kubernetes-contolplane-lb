@@ -53,6 +53,7 @@ frontend stats
 
 frontend contolplane
   bind {{ haproxy_vhost_listen }}
+  option clitcpka
   use_backend contolplane
 
 backend contolplane
@@ -60,9 +61,28 @@ backend contolplane
   fullconn 512
   balance roundrobin
 
-  option  httpchk GET /readyz HTTP/1.0
+  option httpchk GET /readyz HTTP/1.0
   http-check expect status 200,401
 
-{% for ln in haproxy_vhost_backend.split("\n") %}
+{% for ln in haproxy_vhost_backend.splitlines() %}
   {{ ln }}
+{% endfor %}
+
+frontend contolplane-talos
+  bind {{ haproxy_vhost_listen | split(':') | first }}:50001
+  use_backend contolplane-talos
+
+backend contolplane-talos
+  mode tcp
+  fullconn 512
+  balance roundrobin
+
+  option tcp-check
+  tcp-check connect port 50001
+
+  default-server inter 30s fall 2 rise 2 on-marked-down shutdown-sessions resolvers resolvconf init-addr last,none resolve-prefer ipv4
+{% for ln in haproxy_vhost_backend.splitlines() %}
+{% if ln.startswith("server ") %}
+  server {{ ln.split(' ')[1:3] | join(' ') | split(':') | first }}:50001 check
+{% endif %}
 {% endfor %}
