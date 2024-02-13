@@ -16,7 +16,7 @@ haproxy_stats: |
   monitor-uri /healthz
   option dontlognull
   option clitcpka
-  fullconn 16
+  maxconn 16
 
 haproxy_vhost_listen: "127.0.0.1:6443"
 haproxy_vhost_backend: ~
