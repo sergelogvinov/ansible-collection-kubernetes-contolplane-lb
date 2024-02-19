@@ -50,7 +50,7 @@ frontend stats
 {% endfor %}
 
 frontend contolplane
-  bind {{ haproxy_vhost_listen }}
+  bind {{ haproxy_vhost_listen }} mss 1300
   option clitcpka
   use_backend contolplane
 
@@ -67,7 +67,7 @@ backend contolplane
 {% endfor %}
 
 frontend contolplane-talos
-  bind {{ haproxy_vhost_listen | split(':') | first }}:50001
+  bind {{ haproxy_vhost_listen | split(':') | first }}:50001 mss 1300
   use_backend contolplane-talos
 
 backend contolplane-talos
